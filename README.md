@@ -34,3 +34,24 @@ $ sudo -E make RUNTIME=/usr/local/bin/runc localvalidation
 ```
 
 Then you can use it to run your tests with `ociplex` as the runtime.
+
+Note that the test suite is sensitive to the environment, and getting it to
+pass fully is difficult. Current results of this test suite on my machine:
+
+* `crun`:
+  ```
+  Suites:   ​25 failed​, ​25 passed​, ​8 skip​, ​58 of 58 completed
+  Asserts:   ​ ​​​70 failed​, ​3357 passed​, ​466 skip​, ​of 3893
+  ```
+
+* `crun`:
+  ```
+  Suites:   ​23 failed​, ​27 passed​, ​8 skip​, ​58 of 58 completed
+  Asserts:   ​ ​​​45 failed​, ​3642 passed​, ​505 skip​, ​of 4192
+  ```
+
+* `youki`:
+  ```
+  Suites:   ​48 failed​, ​1 passed​, ​9 skip​, ​58 of 58 completed
+  Asserts:   ​ ​​​73 failed​, ​23 passed​, ​9 skip​, ​of 105
+  ```
