@@ -9,3 +9,9 @@ after version 2.0, only supports the `shimv2` interface).
 However, `ociplex` features several back-ends, which makes it possible to target
 another OCI runtime, for example to add additional logging or debugging
 capability.
+
+## Building
+
+At the moment, this requires a custom version of the [`liboci-cli` crate][oci]
+
+[oci]: https://github.com/c3d/youki/tree/liboci-ociplex
