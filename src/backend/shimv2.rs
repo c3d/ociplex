@@ -226,7 +226,10 @@ impl Backend for ShimV2Backend {
         };
         let resp = task.kill(context, &req)?;
         if self.global_opts.debug {
-            println!("Kill connect response {:?}", connect_response);
+            println!(
+                "Kill connect response {:?} task response {:?}",
+                connect_response, resp
+            );
         }
         Ok(())
     }
