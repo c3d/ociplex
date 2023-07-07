@@ -31,6 +31,12 @@ $ cd runtime-tools
 $ make runtimetest validation-executables
 ```
 
+Some dependencies are necessary for the test suite to work well:
+
+```
+$ npm install tap
+```
+
 You can check that the test suite works for you as follows:
 
 ```
@@ -42,10 +48,10 @@ Then you can use it to run your tests with `ociplex` as the runtime.
 Note that the test suite is sensitive to the environment, and getting it to
 pass fully is difficult. Current results of this test suite on my machine:
 
-* `crun`:
+* `runc`:
   ```
   Suites:   ​25 failed​, ​25 passed​, ​8 skip​, ​58 of 58 completed
-  Asserts:   ​ ​​​70 failed​, ​3357 passed​, ​466 skip​, ​of 3893
+  Asserts:   ​ ​​​80 failed​, ​3357 passed​, ​466 skip​, ​of 3903
   ```
 
 * `crun`:
@@ -59,3 +65,19 @@ pass fully is difficult. Current results of this test suite on my machine:
   Suites:   ​48 failed​, ​1 passed​, ​9 skip​, ​58 of 58 completed
   Asserts:   ​ ​​​73 failed​, ​23 passed​, ​9 skip​, ​of 105
   ```
+
+
+## OCI bundle creation
+
+You can use the tools to easily create an OCI bundle:
+
+```
+$ mkdir my-test
+$ cd my-test
+$ mkdir rootfs
+$ ../oci-runtime-tool generate --output config.json
+$ ../oci-runtime-tool validate
+Bundle validation succeeded.
+$ cd rootfs
+$ tar xvfz ../../../../rootfs-amd64.tar.gz
+```
