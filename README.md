@@ -15,3 +15,22 @@ capability.
 At the moment, this requires a custom version of the [`liboci-cli` crate][oci]
 
 [oci]: https://github.com/c3d/youki/tree/liboci-ociplex
+
+
+## Testing
+
+Testing is done through the standard OCI runtime test suite:
+
+```
+$ git clone git@github.com:opencontainers/runtime-tools.git
+$ cd runtime-tools
+$ make runtimetest validation-executables
+```
+
+You can check that the test suite works for you as follows:
+
+```
+$ sudo -E make RUNTIME=/usr/local/bin/runc localvalidation
+```
+
+Then you can use it to run your tests with `ociplex` as the runtime.
