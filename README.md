@@ -19,6 +19,10 @@ At the moment, this requires a custom version of the [`liboci-cli` crate][oci]
 
 ## Testing
 
+The OCI runtimes must obey [the OCI specification][ocispec].
+
+[ocispec]: https://github.com/opencontainers/runtime-tools/blob/master/docs/command-line-interface.md
+
 Testing is done through the standard OCI runtime test suite:
 
 ```
