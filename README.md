@@ -66,8 +66,15 @@ pass fully is difficult. Current results of this test suite on my machine:
   Asserts:   ​ ​​​73 failed​, ​23 passed​, ​9 skip​, ​of 105
   ```
 
+### Running individual tests
 
-## OCI bundle creation
+You can run individual tests in `runtime-tools` as follows:
+
+```
+$ RUNTIME=/usr/bin/runc ./validation/start/start.t
+```
+
+### OCI bundle creation
 
 You can use the tools to easily create an OCI bundle:
 
@@ -80,4 +87,34 @@ $ ../oci-runtime-tool validate
 Bundle validation succeeded.
 $ cd rootfs
 $ tar xvfz ../../../../rootfs-amd64.tar.gz
+```
+
+
+### Example of high-level testing with `podman`
+
+There are several examples of back-ends in the [examples/](examples) directory.
+We will use the [configuration example][crun] to run the `cli` backend with
+`/bin/crun` as the next OCI runtime.
+
+[crun]: examples/cli-runc.toml
+
+Since `'podman` expects a single argument for its `--runtime` option, which is a
+path ot a runtime executable, we will need to create a small wrapper to act as
+this binary, that runs the `debug` build of `ociplex` in the same directory:
+
+```
+#!/bin/bash
+DIR=$(dirname $0)
+BIN=$DIR/target/debug/ociplex
+$BIN --backend $DIR/examples/cli-crun.toml --debug "$@"
+```
+
+This uses the `cli-crun.toml` example file as the backend, and passes the global
+`--debug` option to `ociplex`. You can now run `podman` with it, knowing that
+`podman` will expect a full path to your "runtime":
+
+```
+ podman --runtime $PWD/run-ociplex run -it fedora bash
+[root@039750cf2130 /]# exit
+exit
 ```

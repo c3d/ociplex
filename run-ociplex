@@ -1,0 +1,4 @@
+#!/bin/bash
+DIR=$(dirname $0)
+BIN=$DIR/target/debug/ociplex
+$BIN --backend $DIR/examples/cli-crun.toml --debug "$@"
