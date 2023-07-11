@@ -24,6 +24,7 @@ impl Config {
 struct CliBackend {
     path: PathBuf,
     global_opts: Vec<OsString>,
+    debug: bool,
 }
 
 impl CliBackend {
@@ -56,14 +57,23 @@ impl CliBackend {
         CliBackend {
             path,
             global_opts: opts,
+            debug: global.debug,
         }
     }
 
     fn invoke(&self, args: impl IntoIterator<Item = OsString>) -> Result<()> {
-        let status = Command::new(&self.path)
-            .args(&self.global_opts)
-            .args(args)
-            .status()?;
+        let mut cmd = Command::new(&self.path);
+        cmd.args(&self.global_opts).args(args);
+
+        if self.debug {
+            println!("Running command {:?}", cmd)
+        }
+
+        let status = cmd.status()?;
+
+        if self.debug {
+            println!("Command status {:?}", status)
+        }
 
         if status.success() {
             return Ok(());
