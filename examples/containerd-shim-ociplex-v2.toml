@@ -4,3 +4,4 @@ backend-type = "ShimV2"
 shim = "/usr/local/bin/containerd-shim-koto-v2"
 socket = "/run/containerd/containerd.sock"
 events = "/usr/bin/containerd"
+kata = true

@@ -27,6 +27,7 @@ pub struct Config {
     shim: PathBuf,
     socket: PathBuf,
     events: PathBuf,
+    kata: bool, // Compatibility with kata
 }
 
 impl Config {
@@ -35,6 +36,7 @@ impl Config {
             self.shim,
             self.socket,
             self.events,
+            self.kata,
             opts,
         ))
     }
@@ -45,6 +47,7 @@ struct ShimV2Backend {
     shim: PathBuf,
     socket: PathBuf,
     events: PathBuf,
+    kata: bool,
     global_opts: GlobalOpts,
 }
 
@@ -110,11 +113,18 @@ fn add_bool_option(opts: &mut Struct, kind: &str, value: bool) {
 }
 
 impl ShimV2Backend {
-    fn new(shim: PathBuf, socket: PathBuf, events: PathBuf, global_opts: GlobalOpts) -> Self {
+    fn new(
+        shim: PathBuf,
+        socket: PathBuf,
+        events: PathBuf,
+        kata: bool,
+        global_opts: GlobalOpts,
+    ) -> Self {
         ShimV2Backend {
             shim,
             socket,
             events,
+            kata,
             global_opts,
         }
     }
@@ -122,7 +132,9 @@ impl ShimV2Backend {
     fn launch(&self, socket_path: &str) -> Result<Client> {
         let mut cmdargs = Vec::<OsString>::new();
 
-        cmdargs.push("start".into());
+        if !self.kata {
+            cmdargs.push("start".into());
+        }
         cmdargs.push("-namespace".into());
         cmdargs.push("default".into());
         cmdargs.push("-address".into());
