@@ -1,6 +1,5 @@
 use containerd_shim_protos as shim;
 
-use containerd_shim_protos as client;
 use protobuf::{
     well_known_types::{
         any::Any,
@@ -12,6 +11,8 @@ use shim::ttrpc::context::Context;
 use shim::{api, api::ConnectResponse, Client, TaskClient};
 
 use std::ffi::OsString;
+use std::fs::File;
+use std::io::prelude::*;
 use std::os::unix::process::ExitStatusExt;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -130,6 +131,10 @@ impl ShimV2Backend {
     }
 
     fn launch(&self, socket_path: &str) -> Result<Client> {
+        // Need to create a `log` file to log output of target task
+        let mut file = File::create("log")?;
+        file.write_all(b"")?;
+
         let mut cmdargs = Vec::<OsString>::new();
 
         if !self.kata {
@@ -145,7 +150,7 @@ impl ShimV2Backend {
         let status = Command::new(&self.shim).args(cmdargs).status()?;
 
         if status.success() {
-            return client::Client::connect(socket_path).map_err(anyhow::Error::from);
+            return shim::Client::connect(socket_path).map_err(anyhow::Error::from);
         }
 
         let path = &self.shim;
@@ -160,8 +165,8 @@ impl ShimV2Backend {
 
     fn invoke(&self, pid: &str) -> Result<(TaskClient, Context, ConnectResponse)> {
         let socket_path = path_buf_to_str("socket", &self.socket)?;
-        let client = client::Client::connect(socket_path).or_else(|_| self.launch(socket_path))?;
-        let task_client = client::TaskClient::new(client);
+        let client = shim::Client::connect(socket_path).or_else(|_| self.launch(socket_path))?;
+        let task_client = shim::TaskClient::new(client);
         let context = Context::default();
         let req = api::ConnectRequest {
             id: pid.to_string(),
