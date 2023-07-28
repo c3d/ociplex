@@ -289,10 +289,10 @@ impl Backend for ShimV2Backend {
         let mut opts = Struct::new();
 
         if let Some(work_path) = args.work_path {
-            add_path_option(&mut opts, "work-path", &work_path);
+            add_path_option(&mut opts, "work-path", &work_path)?;
         }
         if let Some(parent_path) = args.parent_path {
-            add_path_option(&mut opts, "parent-path", &parent_path);
+            add_path_option(&mut opts, "parent-path", &parent_path)?;
         }
         if args.leave_running {
             add_bool_option(&mut opts, "leave-running", args.leave_running);
