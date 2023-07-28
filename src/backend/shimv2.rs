@@ -146,7 +146,7 @@ impl ShimV2Backend {
         cmdargs.push(self.socket.clone().into());
         cmdargs.push("-publish-binary".into());
         cmdargs.push(self.events.clone().into());
-        // cmdargs.push("start".into());
+        cmdargs.push("start".into());
 
         let status = Command::new(&self.shim).args(cmdargs).status()?;
 
