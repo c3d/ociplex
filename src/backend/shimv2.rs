@@ -28,7 +28,7 @@ pub struct Config {
     shim: PathBuf,
     socket: PathBuf,
     events: PathBuf,
-    kata: bool, // Compatibility with kata
+    debug_shim: bool,
 }
 
 impl Config {
@@ -37,7 +37,7 @@ impl Config {
             self.shim,
             self.socket,
             self.events,
-            self.kata,
+            self.debug_shim,
             opts,
         ))
     }
@@ -48,7 +48,7 @@ struct ShimV2Backend {
     shim: PathBuf,
     socket: PathBuf,
     events: PathBuf,
-    kata: bool,
+    debug_shim: bool,
     global_opts: GlobalOpts,
 }
 
@@ -118,14 +118,14 @@ impl ShimV2Backend {
         shim: PathBuf,
         socket: PathBuf,
         events: PathBuf,
-        kata: bool,
+        debug_shim: bool,
         global_opts: GlobalOpts,
     ) -> Self {
         ShimV2Backend {
             shim,
             socket,
             events,
-            kata,
+            debug_shim,
             global_opts,
         }
     }
@@ -137,8 +137,8 @@ impl ShimV2Backend {
 
         let mut cmdargs = Vec::<OsString>::new();
 
-        if !self.kata {
-            cmdargs.push("start".into());
+        if self.debug_shim {
+            cmdargs.push("-debug".into());
         }
         cmdargs.push("-namespace".into());
         cmdargs.push("default".into());
@@ -146,6 +146,7 @@ impl ShimV2Backend {
         cmdargs.push(self.socket.clone().into());
         cmdargs.push("-publish-binary".into());
         cmdargs.push(self.events.clone().into());
+        // cmdargs.push("start".into());
 
         let status = Command::new(&self.shim).args(cmdargs).status()?;
 
