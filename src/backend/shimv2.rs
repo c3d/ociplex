@@ -23,6 +23,8 @@ use liboci_cli::GlobalOpts;
 
 use super::Backend;
 
+const TTRPC_ADDRESS: &str = "TTPRC_ADDRESS";
+
 #[derive(Debug, serde::Deserialize)]
 pub struct Config {
     shim: PathBuf,
