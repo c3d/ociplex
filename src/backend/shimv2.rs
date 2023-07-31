@@ -52,6 +52,7 @@ struct ShimV2Backend {
     events: PathBuf,
     debug_shim: bool,
     global_opts: GlobalOpts,
+    container_id: String,
 }
 
 fn path_buf_to_str<'a>(kind: &str, path: &'a Path) -> Result<&'a str> {
@@ -129,10 +130,11 @@ impl ShimV2Backend {
             events,
             debug_shim,
             global_opts,
+            container_id: "".to_string(),
         }
     }
 
-    fn launch(&self, socket_path: &str) -> Result<Client> {
+    fn launch(&self, socket_path: &str, pid: &str) -> Result<Client> {
         // Need to create a `log` file to log output of target task
         let mut file = File::create("log")?;
         file.write_all(b"")?;
@@ -146,6 +148,8 @@ impl ShimV2Backend {
         cmdargs.push("default".into());
         cmdargs.push("-address".into());
         cmdargs.push(self.socket.clone().into());
+        cmdargs.push("-id".into());
+        cmdargs.push(pid.into());
         cmdargs.push("-publish-binary".into());
         cmdargs.push(self.events.clone().into());
         cmdargs.push("start".into());
@@ -168,7 +172,8 @@ impl ShimV2Backend {
 
     fn invoke(&self, pid: &str) -> Result<(TaskClient, Context, ConnectResponse)> {
         let socket_path = path_buf_to_str("socket", &self.socket)?;
-        let client = shim::Client::connect(socket_path).or_else(|_| self.launch(socket_path))?;
+        let client =
+            shim::Client::connect(socket_path).or_else(|_| self.launch(socket_path, pid))?;
         let task_client = shim::TaskClient::new(client);
         let context = Context::default();
         let req = api::ConnectRequest {
