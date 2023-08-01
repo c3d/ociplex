@@ -2,7 +2,7 @@
 
 backend-type = "ShimV2"
 shim = "/usr/local/bin/containerd-shim-koto-v2"
-socket = "/run/containerd/containerd.sock"
+socket = "unix:///run/containerd/containerd.sock.ttrpc"
 events = "/usr/bin/containerd"
 bundle_dir = "/var/lib/containers/storage/overlay-containers/{container-id}/userdata"
 debug_shim = true
