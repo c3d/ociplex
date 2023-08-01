@@ -10,6 +10,7 @@ use protobuf::{
 use shim::ttrpc::context::Context;
 use shim::{api, api::ConnectResponse, Client, TaskClient};
 
+use std::env;
 use std::ffi::OsString;
 use std::fs::File;
 use std::io::prelude::*;
@@ -30,6 +31,7 @@ pub struct Config {
     shim: PathBuf,
     socket: PathBuf,
     events: PathBuf,
+    bundle_dir: PathBuf,
     debug_shim: bool,
 }
 
@@ -39,6 +41,7 @@ impl Config {
             self.shim,
             self.socket,
             self.events,
+            self.bundle_dir,
             self.debug_shim,
             opts,
         ))
@@ -50,6 +53,7 @@ struct ShimV2Backend {
     shim: PathBuf,
     socket: PathBuf,
     events: PathBuf,
+    bundle_dir: PathBuf,
     debug_shim: bool,
     global_opts: GlobalOpts,
     container_id: String,
@@ -121,6 +125,7 @@ impl ShimV2Backend {
         shim: PathBuf,
         socket: PathBuf,
         events: PathBuf,
+        bundle_dir: PathBuf,
         debug_shim: bool,
         global_opts: GlobalOpts,
     ) -> Self {
@@ -128,6 +133,7 @@ impl ShimV2Backend {
             shim,
             socket,
             events,
+            bundle_dir,
             debug_shim,
             global_opts,
             container_id: "".to_string(),
@@ -135,6 +141,21 @@ impl ShimV2Backend {
     }
 
     fn launch(&self, socket_path: &str, pid: &str) -> Result<Client> {
+        // Need to switch to the correct directory for the shim
+        let bundle_dir = self.bundle_dir.as_os_str();
+        let bundle_str = bundle_dir.to_str().ok_or(anyhow!(
+            "The bundle_dir option {:?} contains invalid characters",
+            bundle_dir
+        ))?;
+        let offset = bundle_str
+            .find("{container-id}")
+            .ok_or(anyhow!("The bundle_dir option is missing container-id"))?;
+        let bundle_dir = bundle_str.replace("{container-id}", pid);
+        if self.debug_shim {
+            println!("bundle dir after replacement is {:?}", bundle_dir);
+        }
+        env::set_current_dir(bundle_dir)?;
+
         // Need to create a `log` file to log output of target task
         let mut file = File::create("log")?;
         file.write_all(b"")?;
@@ -188,6 +209,9 @@ impl ShimV2Backend {
 impl Backend for ShimV2Backend {
     // Standard commands (from liboci_cli::StandardCmd)
     fn create(&self, args: liboci_cli::Create) -> Result<()> {
+        if self.debug_shim {
+            println!("Bundle argument is {:?}", args.bundle);
+        }
         let (task, context, connect_response) = self.invoke(&args.container_id)?;
         let bundle = path_buf_to_str("bundle", &args.bundle)?;
 
