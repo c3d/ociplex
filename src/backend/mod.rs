@@ -41,7 +41,7 @@ pub trait Backend: Debug {
         match cmd {
             CommonCmd::Checkpointt(args) => self.checkpoint(args),
             CommonCmd::Events(args) => self.events(args),
-            CommonCmd::Exec(args) => self.exec(*args),
+            CommonCmd::Exec(args) => self.exec(args),
             CommonCmd::Features(args) => self.features(args),
             CommonCmd::List(args) => self.list(args),
             CommonCmd::Pause(args) => self.pause(args),

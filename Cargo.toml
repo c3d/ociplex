@@ -11,8 +11,8 @@ default-features = false
 features = ["std", "suggestions", "derive", "cargo"]
 
 [dependencies]
-liboci-cli = { path = "../youki/crates/liboci-cli" }
-# liboci-cli = "0.1.0"
+# liboci-cli = { path = "../youki/crates/liboci-cli" }
+liboci-cli = "0.2.0"
 serde = { version = "1.0", features = ["derive"] }
 toml = "0.5"
 anyhow = "1.0"
