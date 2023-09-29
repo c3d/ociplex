@@ -27,13 +27,14 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
-use std::fs;
 use std::path::PathBuf;
+use std::{fs, str::FromStr};
 
 use anyhow::{Context, Result};
 use clap::{crate_version, Parser};
-
 use liboci_cli::{CommonCmd, GlobalOpts, StandardCmd};
+use tracing::{debug, error, info, instrument, Level};
+use tracing_subscriber::{filter::LevelFilter, fmt::format::FmtSpan, EnvFilter};
 
 mod backend;
 
@@ -74,9 +75,76 @@ struct Opts
     #[clap(flatten)]
     global: GlobalOpts,
 
+    /// Set the log level (info, debug, trace, error or none)
+    #[clap(long)]
+    log_level: Option<Level>,
+
+    /// Log to the system logger (syslog)
+    #[clap(long)]
+    syslog: bool,
+
     // Subcommand and its associated options if any
     #[clap(subcommand)]
     subcmd: Subcommand,
+}
+
+// Default tracing level depends on configuration (debug or not)
+#[cfg(debug_assertions)]
+const DEFAULT_TRACING_LEVEL: Level = Level::DEBUG;
+
+#[cfg(not(debug_assertions))]
+const DEFAULT_TRACING_LEVEL: Level = Level::ERROR;
+
+fn set_tracing_level() -> Result<()>
+// ----------------------------------------------------------------------------
+//  Select tracing options and install a global tracing collector
+// ----------------------------------------------------------------------------
+//  Tracing options are set by:
+//  1. The OCIPLEX_LOG environment variable
+//  2. The --debug option
+//  3. The --log-level option, which overrides --debug
+//  4. The --log, --log-format and --log-to-syslog
+{
+    // We need options to define where the tracing goes
+    let opts = match Opts::try_parse() {
+        Ok(opts) => opts,
+        Err(e) => e.exit(),
+    };
+
+    // Select actual tracing level
+    let env_filter = EnvFilter::try_from_env("OCIPLEX_LOG");
+    let tracing_level = if let Some(level) = opts.log_level {
+        Some(level)
+    } else if opts.global.debug {
+        Some(Level::DEBUG)
+    } else if env_filter.is_ok() {
+        None
+    } else {
+        Some(DEFAULT_TRACING_LEVEL)
+    };
+
+    let tracing_filter = if let Some(level) = tracing_level {
+        EnvFilter::from(level.as_str())
+    } else {
+        env_filter.unwrap()
+    };
+
+    tracing_subscriber::fmt()
+        .with_env_filter(tracing_filter)
+        .with_span_events(FmtSpan::ENTER | FmtSpan::EXIT)
+        .init();
+
+    Ok(())
+}
+
+#[instrument(level = "debug")]
+fn instrumented(x: i32)
+// ----------------------------------------------------------------------------
+//   This is just for testing
+// ----------------------------------------------------------------------------
+{
+    info!("Inside instrumented x={}", x);
+    debug!("Inside instrumented x={}", x)
 }
 
 fn main() -> Result<()>
@@ -84,13 +152,19 @@ fn main() -> Result<()>
 //  Main entry point for the tool
 // ----------------------------------------------------------------------------
 {
-    // Pars options with clap
+    // Setup global tracing
+    set_tracing_level()?;
+
+    // Parse options with clap
+    info!("Parsing options");
     let opts = match Opts::try_parse() {
         Ok(opts) => opts,
         Err(e) => e.exit(),
     };
 
-    // Read backend configuration from file specified with -backend option
+    instrumented(42);
+
+    // Read backend configuration from file specified with --backend option
     let config = fs::read_to_string(&opts.backend).context("Reading backend config")?;
     let config: backend::Config = toml::from_str(&config).context("Parsing backend config")?;
 
